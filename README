@@ -1,3 +1,8 @@
 プログラミングコンテストチャレンジブックの解答案の記録です。
 	http://www.amazon.co.jp/dp/4839931992/
 主にC++(STL)です。
+
+実行例:
+	% g++ main.cpp
+	% ./a.out < input.txt
+
