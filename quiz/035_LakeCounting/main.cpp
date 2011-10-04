@@ -52,6 +52,6 @@ int main() {
     cerr << "== After ==" << endl;
     printGarden(garden);
 
-    cout << "Answer: " << solve(N, M, garden) << endl;
+    cout << "Answer: " << answer << endl;
 }
 
