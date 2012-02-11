@@ -112,6 +112,33 @@ std::map<int, int> prime_factor(int n) {
 
 // 繰り返し二乗法
 
+
+// Z algorithm
+vector<int> zfunction(string& s) {
+  int n = s.size();
+  int L = 0, R = 0;
+  vector<int> z(n, 0);
+  for (int i = 1; i < n; i++) {
+    if (i > R) {
+      L = R = i;
+      while (R < n && s[R-L] == s[R]) R++;
+      z[i] = R-L;
+      R--;
+    } else {
+      int k = i-L;
+      if (z[k] <= R-i) {
+        z[i] = z[k];
+      } else {
+        L = i;
+        while (R < n && s[R-L] == s[R]) R++;
+        z[i] = R-L;
+        R--;
+      }
+    }
+  }
+  return z;
+}
+
 // テスト用main関数
 int main() {
 
