@@ -13,7 +13,9 @@
 #include <numeric>
 #include <utility>
 #include <iomanip>
+#include <cstdio>
 #include <cmath>
+#include <cstring>
 #include <string>
 using namespace std;
 
@@ -32,42 +34,73 @@ const double PI  = acos(-1.0);
 #define debug(x) cerr << #x << " = " << (x) << " (L" << __LINE__ << ")" << " " << __FILE__ << endl;
 #define check(x) cerr << #x << " = "; REP(q,(x).size()) cerr << (x)[q] << " "; cerr << endl;
 
+template<typename T1, typename T2>
+std::ostream& operator<<(std::ostream& stream, const std::pair<T1, T2>& data) {
+  return stream << "(" << data.first << "," << data.second << ")";
+}
+
 struct BinaryIndexedTree {
   BinaryIndexedTree(int n) {
     int size = 1;
     while (size < n) {
       size <<= 1;
     }
-    v = vector<int>(size + 1, 0);
+    v = vector<LL>(size + 1, 0);
   }
-  int sum(int i) {
-    int res = 0;
+  LL sum(int i) {
+    LL res = 0;
     while (i > 0) {
       res += v[i];
       i -= i & -i;
     }
     return res;
   }
-  void add(int i, int x) {
+  void add(int i, LL x) {
     while (i < v.size()) {
       v[i] += x;
       i += i & -i;
     }
   }
-  vector<int> v;
+  vector<LL> v;
 };
 
+// 4524K	1860MS at POJ
 int main() {
-  int n; cin >> n;
-  vector<int> a(n);
-  REP(i, n) cin >> a[i];
-
-  BinaryIndexedTree bit(a.size());
-  int answer = 0;
-  for (int i = 0; i < a.size(); i++) {
-    answer += i - bit.sum(a[i]);
-    bit.add(a[i], 1);
+  LL N, Q; 
+  scanf("%lld %lld", &N, &Q);
+  vector<LL> A(N);
+  REP(i, N) {
+    LL a;
+    scanf("%lld", &a);
+    A[i] = a;
   }
-  dump(answer);
+
+  BinaryIndexedTree bit0(A.size());
+  BinaryIndexedTree bit1(A.size());
+  for (int i = 0; i < A.size(); i++) {
+    bit0.add(i+1, A[i]);
+  }
+
+  REP(i, Q) {
+    char q; cin >> q;
+    if (q == 'Q') {
+      LL l, r;
+      scanf("%lld %lld", &l, &r);
+
+      LL res = 0;
+      res += bit0.sum(r) + bit1.sum(r) * r;
+      res -= bit0.sum(l - 1) + bit1.sum(l - 1) * (l - 1);
+      cout << res << endl;
+
+    } else {
+      LL l, r, x;
+      scanf("%lld %lld %lld", &l, &r, &x);
+
+      bit0.add(l, -x * (l-1));
+      bit1.add(l, x);
+      bit0.add(r + 1, x * r);
+      bit1.add(r + 1, -x);
+    }
+  }
 }
 
