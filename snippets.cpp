@@ -113,6 +113,14 @@ std::map<int, int> prime_factor(int n) {
 // 繰り返し二乗法
 
 
+// セグメント木: RMQ(Range Minimum Query)
+// 区間に対する演算を、各サブ区間の演算結果をキャッシュすることで高速に行う
+
+
+// Binary Indexed Tree
+
+// Ford-Fulkderson
+
 // Z algorithm
 vector<int> zfunction(string& s) {
   int n = s.size();
