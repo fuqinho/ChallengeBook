@@ -46,8 +46,8 @@ ostream& operator<<(ostream& s, const pair<T1, T2>& d) {return s << "(" << d.fir
 class UnionFindTree {
 public:
   UnionFindTree(int n) {
-    rank = std::vector<int>(n, 0);
-    par = std::vector<int>(n);
+    rank = vector<int>(n, 0);
+    par = vector<int>(n);
     for (int i = 0; i < n; i++) par[i] = i;
   }
   int find(int x) {
@@ -66,8 +66,8 @@ public:
     return find(x) == find(y);
   }
 private:
-  std::vector<int> par;
-  std::vector<int> rank;
+  vector<int> par;
+  vector<int> rank;
 };
 
 // ベルマンフォード法
@@ -109,9 +109,9 @@ int extgcd(int a, int b, int& x, int& y) {
 
 // エラトステネスのふるい
 // n以下の素数のリストを返す
-std::vector<int> getPrimes(int n) {
-  std::vector<int> is_prime(n + 1, true);
-  std::vector<int> res;
+vector<int> getPrimes(int n) {
+  vector<int> is_prime(n + 1, true);
+  vector<int> res;
   for (int i = 2; i <= n; i++) {
     if (is_prime[i]) {
       res.push_back(i);
@@ -130,7 +130,7 @@ bool is_prime(int n) {
 }
 
 // 素因数分解
-std::map<int, int> prime_factor(int n) {
+map<int, int> prime_factor(int n) {
   map<int, int> res;
   for (int i = 2; i * i <= n; i++) {
     while (n % i == 0) {
@@ -154,12 +154,145 @@ vector<int> divisor(int n) {
   return res;
 }
 
+/////////////////////////////////////
+//// 合同式
+const int MOD = 1000000007;
+
+int mod(long long a) {
+  return (a % MOD + MOD) % MOD;
+}
+
+int mod_add(int a, int b) {
+  return mod(a + b);
+}
+
+int mod_sub(int a, int b) {
+  return mod(a - b);
+}
+
+int mod_mul(int a, int b) {
+  return mod((long long)a * b);
+}
+
+int mod_pow(int a, int e) {
+  int res = 1;
+  int t = a;
+  while (e > 0) {
+    if (e & 1) res = mod_mul(res, t);
+    t = mod_mul(t, t);
+    e >>= 1;
+  }
+  return res;
+}
+
+int mod_div(int a, int b) {
+  return mod_mul(a, mod_pow(b, MOD-2));
+}
+
+int combination(int n, int r) {
+  int res = 1;
+  r = min(r, n-r);
+  for (int i = 0; i < r; i++) {
+    res = mod_mul(res, n-i);
+    res = mod_div(res, i+1);
+  }
+  return res;
+}
+
+int homogeneous(int n, int r) {
+  return combination(n+r-1, n);
+}
+///////////////////////////////////////
+
+
+
+
 // 合同式のべき乗: x^n (mod m)
 LL mod_pow(LL x, LL n, LL m) {
   if (n == 0) return 1;
   LL res = mod_pow(x * x % m, n / 2, m);
   if (n & 1) res = res * x % m;
   return res;
+}
+
+// 合同式の掛け算(オーバーフロー対策): a*b (mod m)
+LL mod_mult(LL a, LL b, LL m) {
+  LL res = 0;
+  LL exp = a % m;
+  while (b) {
+    if (b & 1) {
+      res += exp;
+      if (res > m) res -= m;
+    }
+    exp <<= 1;
+    if (exp > m) exp -= m;
+    b >>= 1;
+  }
+  return res;
+}
+
+// ミラー-ラビン素数判定法
+bool miller_rabin(LL n, LL times) {
+  if (n < 2) return false;
+  if (n == 2) return true;
+  if (!(n & 1)) return false;
+
+  LL q = n-1;
+  int k = 0;
+  while (q % 2 == 0) {
+    k++;
+    q >>= 1;
+  }
+  // n - 1 = 2^k * q (qは奇素数)
+  // nが素数であれば、下記のいずれかを満たす
+  // (i) a^q ≡ 1 (mod n)
+  // (ii) a^q, a^2q,..., a^(k-1)q のどれかがnを法として-1
+  //
+  // なので、逆に(i)(ii)いずれも満たしていない時は合成数と判定できる
+  //
+  for (int i = 0; i < times; i++) {
+    LL a = rand() % (n-1) + 1; // 1,..,n-1からランダムに値を選ぶ
+    LL x = mod_exp(a, q, n);
+    // (i)をチェック
+    if (x == 1) continue;
+    // (ii)をチェック
+    bool found = false;
+    for (int j = 0; j < k; j++) {
+      if (x == n-1) {
+        found = true;
+        break;
+      }
+      x = mod_mult(x, x, n);
+    }
+    if (found) continue;
+
+    return false;
+  }
+  return true;
+}
+
+// ポラード・ロー素因数分解法
+// nが合成数とわかってる時に、その約数を見つける
+LL get_gcd(LL n, LL m) {
+  if (n < m) swap(n, m);
+  while (m) {
+    swap(n, m);
+    m %= n;
+  }
+  return n;
+}
+LL pollard_rho(LL n, int c) {
+  LL x = 2;
+  LL y = 2;
+  LL d = 1;
+  while (d == 1) {
+    x = mod_mult(x, x, n) + c;
+    y = mod_mult(y, y, n) + c;
+    y = mod_mult(y, y, n) + c;
+    d = get_gcd((x-y >= 0 ? x-y : y-x), n);
+  }
+  if (d == n) return pollard_rho(n, c+1);
+  return d;
 }
 
 // 繰り返し二乗法
@@ -184,19 +317,22 @@ vector<vector<int> > mul(vector<vector<int> >& a, vector<vector<int> >& b) {
 
 // Binary Indexed Tree
 struct BIT {
-  vector<int> bit;
+  vector<LL> bit;
   BIT(int n) {
-    bit = vector<int>(n+1);
+    bit = vector<LL>(n+1);
   }
-  int sum(int i) {
-    int res = 0;
+  LL sum(int i) {
+    LL res = 0;
     while (i > 0) {
       res += bit[i];
       i -= (i & -i);
     }
     return res;
   }
-  void add(int i, int x) {
+  LL sum(int i, int j) {
+    return sum(j) - sum(i-1);
+  }
+  void add(int i, LL x) {
     while (i < bit.size()) {
       bit[i] += x;
       i += (i & -i);
@@ -485,6 +621,18 @@ vector<int> zfunction(string& s) {
     }
   }
   return z;
+}
+
+/////////////////////////////////////
+// 幾何
+
+// 角度の正規化 [-PI, PI)
+double normalize(double theta) {
+  if(theta < 0.0) theta = -theta;
+  int n = theta / 2.0 / PI;
+  theta -= 2.0 * PI * n;
+  if(theta > PI) theta = 2.0 * PI - theta;
+  return theta;
 }
 
 // テスト用main関数
