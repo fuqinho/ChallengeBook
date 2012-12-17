@@ -45,29 +45,29 @@ ostream& operator<<(ostream& s, const pair<T1, T2>& d) {return s << "(" << d.fir
 // 要素が同じ集合に入っているかの判定と、集合同士の結合を高速に行う。
 class UnionFindTree {
 public:
-  UnionFindTree(int n) {
-    rank = vector<int>(n, 0);
-    par = vector<int>(n);
-    for (int i = 0; i < n; i++) par[i] = i;
-  }
-  int find(int x) {
-    if (x == par[x]) return x;
-    else return par[x] = find(par[x]);
-  }
-  void unite(int x, int y) {
-    int rx = find(x), ry = find(y);
-    if (rank[rx] < rank[ry]) par[rx] = ry;
-    else {
-      par[ry] = rx;
-      if (rank[rx] == rank[ry]) rank[rx]++;
+    UnionFindTree(int n) {
+        rank = vector<int>(n, 0);
+        p = vector<int>(n);
+        for (int i = 0; i < n; i++) p[i] = i;
     }
-  }
-  bool same(int x, int y) {
-    return find(x) == find(y);
-  }
+    int find(int x) {
+        if (x != p[x]) p[x] = find(p[x]);
+        return p[x];
+    }
+    void unite(int x, int y) {
+        int rx = find(x), ry = find(y);
+        if (rank[rx] < rank[ry]) p[rx] = ry;
+        else {
+            p[ry] = rx;
+            if (rank[rx] == rank[ry]) rank[rx]++;
+        }
+    }
+    bool same(int x, int y) {
+        return find(x) == find(y);
+    }
 private:
-  vector<int> par;
-  vector<int> rank;
+    vector<int> p;
+    vector<int> rank;
 };
 
 // ベルマンフォード法
@@ -189,6 +189,30 @@ int mod_div(int a, int b) {
   return mod_mul(a, mod_pow(b, MOD-2));
 }
 
+//// 合同式の値用クラス
+struct mint {
+    static const int n = 1000000007;
+    int v;
+    mint() : v(0) {}
+    mint(int v) : v(v) {}
+    mint& operator+= (const mint& o) {v = (v+o.v)%n; return *this;}
+    mint& operator-= (const mint& o) {v = (v-o.v+n)%n; return *this;}
+    mint& operator*= (const mint& o) {v = ((long long)v*o.v)%n; return *this;}
+    mint& operator/= (const mint& o) {v = (o.inv()*=v).v; return *this;}
+    mint inv() const {return (*this).pow(n-2);}
+    mint pow(int e) const {
+        mint res=1, x=v;
+        while (e) {if (e&1) res*=x; x*=x; e>>=1;}
+        return res;
+    }
+};
+mint operator+(const mint& x, const mint& y) {return (x.v+y.v)%mint::n;}
+mint operator-(const mint& x, const mint& y) {return (x.v-y.v+mint::n)%mint::n;}
+mint operator*(const mint& x, const mint& y) {return ((long long)x.v*y.v)%mint::n;}
+mint operator/(const mint& x, const mint& y) {return x*y.inv();}
+std::ostream& operator<<(std::ostream& os, const mint& x) {return os<<x.v;}
+
+////////////////////////////////////
 int combination(int n, int r) {
   int res = 1;
   r = min(r, n-r);
